@@ -1,131 +1,135 @@
 import tkinter as tk
 from tkinter import *
-from tkinter import ttk, messagebox
-from tkinter.filedialog import askopenfilename , asksaveasfilename
 import os
 import sys
-# might change the above later to not have the finder window open
+
 
 main_list = "list_of_notes.txt"
-print("Current directory :", os.getcwd())
 os.chdir("files")
-print("Current directory :", os.getcwd())
-selections = tk.Listbox()
 
-""" def saving():
-    file_location = asksaveasfilename(
-        defaultextension="txt", 
-        filetypes=[("Text files", "*.txt"), ("All files","*.*"), ]) # ("Markdown files", "*.md"),
-        #will default to save as a txt but you can do other 
-    if not file_location:
-        return
-    with open(file_location,"w") as file_output:
-        txt = text_edit.get(1.0, tk.END)
-        file_output.write(txt)
-    main.title(f"BOBSIDIAN - {file_location}")
-
-def opening():
-    file_location = askopenfilename(
-        filetypes=[("Text files", "*.txt"), ("All files","*.*")])
-    if not file_location:
-        return
-    text_edit.delete(1.0, tk.END)
-    with open(file_location,"r") as file_input:
-        txt = file_input.read()
-        text_edit.insert(tk.END, txt)
-    main.title(f"BOBSIDIAN - {file_location}") """
-
-def saves(name):
-    note_name = name+".txt"
+def saves(name): # create new
     with open(main_list, "a") as new_note:
-        new_note.write(f"{note_name}\n")
-    with open(note_name, "w") as file_output: # should be able to create a new file 
+        new_note.write(name)
+    name = name.strip("\n")
+    """ with open(name, "w") as file_output: # should be able to create a new file 
         contents = text_edit.get(1.0, tk.END)
-        file_output.write(contents)
+        file_output.write(contents) """
     main.title(f"BOBSIDIAN - {name}")
 
-def saver():
-    with open(main_list, "r") as reader:
-        length = int(len(reader.readlines())) - 1
+"""
+- opens list of notes
+- takes in length of list
+- gets the name of the current 
+"""
+def saver(): # press save button after writing
+    with open("current.txt", "r") as reader: # read current
         line_read = reader.readlines()
-        i = 0
-        while i < length:
-            i +=1
-        note_name = line_read[i]
-    with open(note_name, "w") as file_output:
+        note_name = line_read[0]
+        new_name = note_name
+    with open(new_name, "w") as file_output:
         contents = text_edit.get(1.0, tk.END)
         file_output.write(contents)
-    main.title(f"BOBSIDIAN - {note_name}")
+    main.title(f"BOBSIDIAN - {new_name}")
 
-def opens():
-    ftuple = selections.curselection()
-    for i in ftuple:
-        if i < 0:
-            messagebox.showinfo(title="Error",message="Please choose only 1 file")
-            window("open")
-        else:
-            note_name = selections.get(i) # FIX TO REMOVE THE \N
+def open_delete(selections,type):
+        ftuple = get_ftuple(selections)
+        index = ftuple[0]
+        note_name = selections.get(index).strip("\n") # REMOVE THE \N
+        print(note_name)
+        if type == "open":
+            save_current(note_name)
+            text_edit.delete("1.0",tk.END)
             with open(note_name, "r") as file_output:
                 contents = file_output.read()
-            text_edit.insert(tk.END, contents)
-    main.title(f"BOBSIDIAN - {note_name}")
+                text_edit.insert(tk.END, contents)
+            main.title(f"BOBSIDIAN - {note_name}")
+        else:
+            with open("current.txt", "w") as eraser: # clear the current note
+                eraser.write("")
+            items = ""
+            with open(main_list, "r") as reader:
+                lines = reader.readlines()
+            with open(main_list, "w") as writer:
+                for item in lines:
+                    if item.strip("\n") != note_name:
+                        items = items + item
+                writer.write(items)
+                os.remove(note_name)
+            return
 
-def checker(name):
+def open_existing_file(name): # opens existing note
+    name = name.strip("\n")
+    save_current(name)
+    with open(name, "r") as file_input:
+        contents = file_input.read()
+        text_edit.insert(tk.END, contents)
+        main.title(f"BOBSIDIAN - {name}")
+    return
+
+def checker(name): # checks if the note name exists
+    name = name+f".txt\n"
+    save_current(name)
     with open(main_list, "r") as reader:
         notes = reader.read()
         if name not in notes:
             saves(name)
         else:
-            popup = Toplevel(main) # popup window
+            popup = tk.Toplevel(main) # popup window
             popup.geometry("300x300")
             popup.title("BOBSIDIAN Error")
-            new_file = tk.Button(text="Choose a new name", command=lambda: window("new"))
+            new_file = tk.Button(popup, text="Choose a new name", command=lambda: [window("new"),destroy(popup)])
             new_file.pack()
-            open_existing = tk.Button(text="Open existing file", command=opens(name))
+            open_existing = tk.Button(popup, text="Open existing file", command=lambda:[open_existing_file(name), destroy(popup)])
             open_existing.pack()
-            # MAKE THE BUTTONS VISIBLE
+    return
 
+def save_current(name):
+    with open("current.txt", "w") as writer: # save the name of the current file
+        writer.write(name)
+    return
+
+def get_selections(popup): # returns the listbox of notes
+    selections = tk.Listbox(popup)
+    i = 0
+    with open(main_list, "r") as reader:
+        notes = reader.readlines()
+        for file in notes:
+            selections.insert(i,file)
+            i += 1
+    selections.pack()
+    return selections
+
+def get_ftuple(selections): # gets the tuple from the listbox
+    ftuple=selections.curselection()
+    return ftuple
 
 def window(type): # will only build the windows and buttons etc
      popup = Toplevel(main) # popup window
      popup.geometry("300x300")
      popup.title("BOBSIDIAN Select Note")
-
-     if type == "open":
-          # use a loop to list the items as listbox items
+     
+     if type == "open": # open note
           popup.geometry("700x700")
-          i = 0
-          with open(main_list, "r") as reader:
-            notes = reader.readlines()
-            for file in notes:
-                selections.insert(i , file)
-                i = i + 1
-          selections.pack()
-          real_open = tk.Button(text="Open file", command=opens)
+          selections = get_selections(popup)
+          real_open = tk.Button(popup, text="Open file", command=lambda:[open_delete(selections, "open"), destroy(popup)])
           real_open.pack()
 
-     elif type == "save":
-          """ popup.title("BOBSIDIAN Enter Information")
-          name_entry = tk.Entry(popup)
-          name_entry.pack(side = LEFT) 
-          button_name = tk.Button(popup, text="Save File", command = lambda: checker(name_entry.get()))
-          button_name.pack(side = LEFT)
-          popup.destroy() """
-          # enter name and get it as a variable then runs saves
-          # for now..
-          saver()
-
      elif type == "delete":
-        return
+        selections = get_selections(popup)
+        ftuple = get_ftuple(selections)
+        real_delete = tk.Button(popup, text="Open file", command=lambda:[open_delete(selections,"del"), destroy(popup), destroy(selections)])
+        real_delete.pack()
+     
      elif type == "new":
          popup.title("BOBSIDIAN Enter Information")
          name_entry = tk.Entry(popup)
-         name_entry.pack(side = LEFT) 
-         button_name = tk.Button(popup, text="Start File", command = lambda: checker(name_entry.get()))
-         button_name.pack(side = LEFT)
+         name_entry.pack() 
+         button_name = tk.Button(popup, text="Start File", command = lambda: [checker(name_entry.get()),destroy(popup)])
+         button_name.pack()
 
 def destroy(item):
     item.destroy()
+    return
 
 def hide_sidebar():
      frames_button.pack_forget()
@@ -138,8 +142,7 @@ def show_sidebar():
      button_sidebar_s.pack_forget()
      frames_settings.pack(side=TOP)
      frames_button.pack(side=TOP, expand=TRUE, fill="y")
-     
-
+    
 main = tk.Tk() # makes the window
 main.title("BOBSIDIAN")
 main.rowconfigure(0, minsize=800)
@@ -148,9 +151,9 @@ main.columnconfigure(1, minsize=800)
 window_open = Toplevel(main) # popup window to check if you want to open a file or do a new one
 window_open.geometry("500x600")
 window_open.title("BOBSIDIAN Start")
-button_new = tk.Button(window_open, command=lambda:window("new"))
+button_new = tk.Button(window_open, text="Create New Note",command=lambda:[window("new"),destroy(window_open)])
 button_new.pack()
-button_open_start = tk.Button(window_open, command=lambda:window("open"))
+button_open_start = tk.Button(window_open, text="Open Existing",command=lambda:[window("open"),destroy(window_open)])
 button_open_start.pack()
 
 
@@ -177,6 +180,8 @@ button_save = tk.Button(frames_button, text="Save", command=saver)
 button_save.grid(row=2, column = 0, padx=5, pady=5)
 button_delete = tk.Button(frames_button, text="Delete", command=lambda: window("delete"))
 button_delete.grid(row=3, column = 0, padx=5, pady=5)
+button_neww = tk.Button(frames_button, text="New", command=lambda: window("new"))
+button_neww.grid(row=4, column = 0, padx=5, pady=5)
 
 main.mainloop()
 
