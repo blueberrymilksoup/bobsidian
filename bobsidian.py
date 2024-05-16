@@ -10,30 +10,26 @@ def saves(name): # create new
     with open(main_list, "a") as new_note:
         new_note.write(name)
     name = name.strip("\n")
-    with open(name, "w") as file_output: # should be able to create a new file 
-        file_output.write("")
+    with open(name, "w") as file_input: # should be able to create a new file 
+        file_input.write("")
+    text_edit.delete(1.0,tk.END)
     main.title(f"BOBSIDIAN - {name}")
 
-"""
-- opens list of notes
-- takes in length of list
-- gets the name of the current 
-"""
 def saver(): # press save button after writing
-    with open("current.txt", "r") as reader: # read current
+    with open("current.txt", "r") as reader: # read current and get the name of the new file
         line_read = reader.readlines()
         note_name = line_read[0]
         new_name = note_name.strip('\n')
-    with open(new_name, "w") as file_output:
+    with open(new_name, "w") as file_input: # create the new 
         contents = text_edit.get(1.0, tk.END)
-        file_output.write(contents)
+        file_input.write(contents)
     main.title(f"BOBSIDIAN - {new_name}")
 
 def open_delete(selections,type):
         ftuple = get_ftuple(selections)
         index = ftuple[0]
         note_name = selections.get(index).strip("\n") # REMOVE THE \N
-        print(note_name)
+
         if type == "open":
             save_current(note_name)
             text_edit.delete("1.0",tk.END)
@@ -41,9 +37,8 @@ def open_delete(selections,type):
                 contents = file_output.read()
                 text_edit.insert(tk.END, contents)
             main.title(f"BOBSIDIAN - {note_name}")
-        else:
-            with open("current.txt", "w") as eraser: # clear the current note
-                eraser.write("")
+
+        else: # delete function
             items = ""
             with open(main_list, "r") as reader:
                 lines = reader.readlines()
@@ -115,7 +110,7 @@ def window(type): # will only build the windows and buttons etc
      elif type == "delete":
         selections = get_selections(popup)
         ftuple = get_ftuple(selections)
-        real_delete = tk.Button(popup, text="Open file", command=lambda:[open_delete(selections,"del"), destroy(popup), destroy(selections)])
+        real_delete = tk.Button(popup, text="Delete file", command=lambda:[open_delete(selections,"del"), destroy(popup), destroy(selections)])
         real_delete.pack()
 
      elif type == "new":
@@ -144,6 +139,7 @@ main = tk.Tk() # makes the window
 main.title("BOBSIDIAN")
 main.rowconfigure(0, minsize=800)
 main.columnconfigure(1, minsize=800)
+
 window_open = Toplevel(main) # popup window to check if you want to open a file or do a new one
 window_open.geometry("500x600")
 window_open.title("BOBSIDIAN Start")
