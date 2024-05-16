@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import *
 import os
-import sys
+
 
 
 main_list = "list_of_notes.txt"
@@ -11,9 +11,6 @@ def saves(name): # create new
     with open(main_list, "a") as new_note:
         new_note.write(name)
     name = name.strip("\n")
-    """ with open(name, "w") as file_output: # should be able to create a new file 
-        contents = text_edit.get(1.0, tk.END)
-        file_output.write(contents) """
     main.title(f"BOBSIDIAN - {name}")
 
 """
@@ -34,7 +31,8 @@ def saver(): # press save button after writing
 def open_delete(selections,type):
         ftuple = get_ftuple(selections)
         index = ftuple[0]
-        note_name = selections.get(index).strip("\n") # REMOVE THE \N
+        note_name = selections.get(index)
+        note_name = note_name.strip("\n") # REMOVE THE \N
         print(note_name)
         if type == "open":
             save_current(note_name)
@@ -117,14 +115,15 @@ def window(type): # will only build the windows and buttons etc
      elif type == "delete":
         selections = get_selections(popup)
         ftuple = get_ftuple(selections)
-        real_delete = tk.Button(popup, text="Open file", command=lambda:[open_delete(selections,"del"), destroy(popup), destroy(selections)])
+        real_delete = tk.Button(popup, text="Delete file", command=lambda:[open_delete(selections,"del"), destroy(popup), destroy(selections)])
         real_delete.pack()
      
      elif type == "new":
          popup.title("BOBSIDIAN Enter Information")
          name_entry = tk.Entry(popup)
          name_entry.pack() 
-         button_name = tk.Button(popup, text="Start File", command = lambda: [checker(name_entry.get()),destroy(popup)])
+         the_name = name_entry.get()
+         button_name = tk.Button(popup, text="Start File", command = [checker(the_name), destroy(popup)])
          button_name.pack()
 
 def destroy(item):
@@ -180,8 +179,8 @@ button_save = tk.Button(frames_button, text="Save", command=saver)
 button_save.grid(row=2, column = 0, padx=5, pady=5)
 button_delete = tk.Button(frames_button, text="Delete", command=lambda: window("delete"))
 button_delete.grid(row=3, column = 0, padx=5, pady=5)
-button_neww = tk.Button(frames_button, text="New", command=lambda: window("new"))
-button_neww.grid(row=4, column = 0, padx=5, pady=5)
+# button_neww = tk.Button(frames_button, text="New", command=lambda: window("new"))
+# button_neww.grid(row=4, column = 0, padx=5, pady=5)
 
 main.mainloop()
 
